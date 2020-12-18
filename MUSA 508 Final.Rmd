@@ -946,7 +946,7 @@ So far, we have found that Santa Monica has relatively high average income and g
 
 
 
-```{r Figure 10: weather conditions/time plot, fig.height=10, fig.width=8, message=FALSE, warning=FALSE, results='hide'}
+```{r Figure 10: weather conditions/time plot, fig.height=9, fig.width=8, message=FALSE, warning=FALSE, results='hide'}
 library(ggplot2)
 library(gridExtra)
 #vsby: visibility; sknt:wind speed; gust:wind gust in knots
@@ -1085,7 +1085,7 @@ study.panel %>%
 
 As seen in Figure 6, EMS call volume varies in consistent patterns throughout the day, indicating temporal clustering. We therefore make lag features to help us predict EMS demand at a given hour.  
 
-```{r feature eng - make lags, message=FALSE, warning=FALSE, include=TRUE, results='hide'}
+```{r feature eng - make lags, fig.height=3, fig.width=8, message=FALSE, warning=FALSE, include=TRUE, results='hide'}
 study.panel <- 
   study.panel %>% 
   arrange(uniqueID, interval60) %>% 
@@ -1097,16 +1097,16 @@ study.panel <-
          lag1day = dplyr::lag(EMS_Count,24)) %>% 
    mutate(day = yday(interval60))
 
-# study.panel.rd <- 
-#   study.panel.rd %>% 
-#   arrange(reporting_district, interval60) %>% 
-#   mutate(lagHour = dplyr::lag(EMS_Count,1),
-#          lag2Hours = dplyr::lag(EMS_Count,2),
-#          lag3Hours = dplyr::lag(EMS_Count,3),
-#          lag4Hours = dplyr::lag(EMS_Count,4),
-#          lag12Hours = dplyr::lag(EMS_Count,12),
-#          lag1day = dplyr::lag(EMS_Count,24)) %>% 
-#    mutate(day = yday(interval60))
+study.panel.rd <-
+  study.panel.rd %>%
+  arrange(reporting_district, interval60) %>%
+  mutate(lagHour = dplyr::lag(EMS_Count,1),
+         lag2Hours = dplyr::lag(EMS_Count,2),
+         lag3Hours = dplyr::lag(EMS_Count,3),
+         lag4Hours = dplyr::lag(EMS_Count,4),
+         lag12Hours = dplyr::lag(EMS_Count,12),
+         lag1day = dplyr::lag(EMS_Count,24)) %>%
+   mutate(day = yday(interval60))
 ```
 
 In Figure 13, we see that 1 hour lag appears to correlate with EMS count.    
@@ -1243,7 +1243,7 @@ final_net <-
 We now begin to build a series of linear regression models. First, we visualize the correlations between all of our final features. Figure 15 shows us that poverty rate and median income correlate strongly, therefore they may be co-linear and should not be included in a model together. The same goes for downtown distance and distance to nearest hotspot; percent white and median income; and day and week.
 
 
-```{r Figure 15: corr plot, fig.height=6, fig.width=6, message=FALSE, warning=FALSE, results='hide'}
+```{r Figure 15: corr plot, fig.height=10, fig.width=10, message=FALSE, warning=FALSE, results='hide'}
 #Make final panel with spatial features
 study.panel.net <- final_net %>%
   dplyr::select(countEMS, uniqueID, responseTime, cvID, tract, servicerequest, Trash, Violent_Crime, bingeDrink, medHHInc, pctPoverty, ZIPCODE, bar.nn, downtown.nn, EMS.isSig.dist, pctWhite, medHHInc, median_age, poorPhysicalHealth, geometry) %>%
@@ -1260,7 +1260,7 @@ library(ggcorrplot)
 ggcorrplot(round(cor(select_if(study.panel.net %>%   
   sample_n(., 20000), is.numeric) %>% na.omit()), 1),
   p.mat = cor_pmat(select_if(study.panel.net, is.numeric) %>% na.omit()),
-  colors = c("yellow", "white", "pink"),
+  colors = c("dark blue", "white", "pink"),
   type="lower",
   insig = "blank") +  
     labs(title = "Figure 15: EMS Call Correlation with Numeric Variables") +
@@ -1270,13 +1270,16 @@ ggcorrplot(round(cor(select_if(study.panel.net %>%
 
 To predict EMS calls across the time/space units in our panel, we first split our EMS data into a train and test set. We make four regression models:  
 
-*1. Temporal features*
-*2. Spatial features*
-*3. Temporal + spatial features*
-*4. Temporal + spatial + lag features*  
+*1. Temporal features*  
+
+*2. Spatial features*  
+
+*3. Temporal + spatial features*  
+
+*4. Temporal + spatial + lag features*    
 
 
-```{r Regressions}
+```{r Regressions, message=FALSE, warning=FALSE, include=TRUE, results='hide'}
 
 study.panel.net <- study.panel.net %>%
   mutate(h_interval60 = hour(interval60))
@@ -1309,7 +1312,9 @@ reg4_lag <-   lm(EMS_Count ~ h_interval60 + dotw + Temperature + Precipitation +
 # Model Performance  
 
 
-We evaluate the usefulness of these models using accuracy and generalizability as metrics. We test accuracy by calculating the Mean Absolute Error (MAE) in our predictions for each fishnet cell/hour pair. The lower the error, the more accurate our model. For generalizability, we check if our model predicts equally well across different spatial, temporal, and social contexts. For a use case that concerns saving lives and responding to time-sensitive emergencies, it is critical that our model predicts with equal accuracy across social contexts such as race, income, and health levels.    
+We evaluate the usefulness of these models using accuracy and generalizability as metrics. We test accuracy by calculating the Mean Absolute Error (MAE) in our predictions for each fishnet cell/hour pair. The lower the error, the more accurate our model. For generalizability, we check if our model predicts equally well across different spatial, temporal, and social contexts.   
+
+For a use case that concerns saving lives and responding to time-sensitive emergencies, it is critical that our model predicts with equal accuracy across social contexts such as race, income, and health levels.    
 
 
 ```{r predict on test data, message=FALSE, warning=FALSE, include=TRUE}
@@ -1351,12 +1356,12 @@ week_predictions %>%
   gather(Variable, MAE, -Regression, -Week) %>%
   ggplot(aes(Week, MAE)) + 
     geom_bar(aes(fill = Regression), position = "dodge", stat="identity") +
-  scale_fill_manual(values = palette4) +
+  scale_fill_manual(values = c("pink", "purple", "maroon", "magenta")) +
     labs(title = "Figure 16: Mean Absolute Error by Model and Week") +
   plotTheme()
 ```
 
-```{r Figure 17: Time series, fig.height=3, fig.width=6, message=FALSE, warning=FALSE, results='hide'}
+```{r Figure 17: Time series, fig.height=3, fig.width=8, message=FALSE, warning=FALSE, results='hide'}
 #PLOT AGAINST ACTUAL SERIES
 week_predictions %>% 
   mutate(interval60 = map(data, pull, interval60),
@@ -1389,7 +1394,6 @@ Figure 18 shows that our model has similar MAE across different hours of the day
 error.byWeek <-
   filter(week_predictions, Regression == "Time_Space_Lag" & Week == 43) %>% 
   unnest() %>% 
-  #filter(dotw == "Wed") %>%
   st_sf() %>%
   dplyr::select(Absolute_Error, uniqueID, dotw, geometry) %>%
   gather(Variable, Value, -dotw, -uniqueID, -geometry) %>%
@@ -1407,7 +1411,7 @@ plot_week_pred <- week_predictions %>%
          latitude, Observed, Prediction, Regression,
          dotw) %>%
   unnest() %>%
-  sample_n(., 50000) %>%
+  sample_n(., 500000) %>%
   filter(Regression == "Time_Space_Lag")%>%
   mutate(weekend = ifelse(dotw %in% c("Sun", "Sat"), "Weekend", "Weekday"),
          time_of_day = case_when(hour(interval60) < 7 | hour(interval60) > 18 ~ "Overnight",
@@ -1420,8 +1424,8 @@ plot_week_pred <- week_predictions %>%
   facet_grid(time_of_day ~ weekend)+
   geom_smooth(aes(x= Observed, y= Prediction), method = "lm", se = FALSE, color = "pink")+
   labs(title="Figure 18: Observed vs Predicted Across Time Periods",
-       x="Observed trips", 
-       y="Predicted trips")+
+       x="Observed EMS Calls", 
+       y="Predicted EMS Calls")+
   plotTheme()
   
   rm(plot_week_pred)
@@ -1444,7 +1448,7 @@ Figure 19, however, shows that while the average MAE of our model is around 0.01
 
 
 
-```{r Figure 19: Error by fishnet grid, fig.height=2, fig.width=4, message=FALSE, warning=FALSE, results='hide'}
+```{r Figure 19: Error by fishnet grid, fig.height=3, fig.width=8, message=FALSE, warning=FALSE, results='hide'}
 
 #Figure 2: Plot of error by fishnet grid
 error.byWeek %>%
@@ -1461,7 +1465,7 @@ Figure 20 confirms this. This is concerning, and it requires that we look more c
 
 
 
-```{r Figure 20: MAE by time period, fig.height=3, fig.width=6, message=FALSE, warning=FALSE, results='hide'}
+```{r Figure 20: MAE by time period, fig.height=4, fig.width=8, message=FALSE, warning=FALSE, results='hide'}
 # Figure 2: Map of MAE by time period
 MAE_plot_map <- week_predictions %>% 
   mutate(interval60 = map(data, pull, interval60),
@@ -1489,11 +1493,11 @@ MAE_plot_map <- week_predictions %>%
 
 ggplot(MAE_plot_map)+
   geom_sf(data = ACS %>%
-            st_transform(crs=4326), colour = 'white', fill = "gray90")+
+            st_transform(crs=4326), colour = 'white', fill = "gray70")+
   geom_sf(data = MAE_plot_map , aes(color = MAE),
-             fill = "transparent", size = 2, alpha = 1.5)+
+             fill = "transparent", size = 1, alpha = 1.5)+
   scale_colour_viridis(direction = -1,
-                       discrete = FALSE, option = "B") +
+                       discrete = FALSE, option = "A") +
   facet_grid(weekend~time_of_day)+
   labs(title="Figure 20: Mean Absolute Error by Time Period and Fishnet Cell")+
   mapTheme()
