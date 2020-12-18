@@ -8,10 +8,14 @@ output:
     toc_float: true
     code_folding: hide
 ---
-# Introduction    
-In the field of Emergency Medical Services (EMS), response time is everything. When responding to EMS calls for conditions such as cardiac arrest or stroke, minutes can be the difference between life and death. Over the past year, the COVID-19 pandemic has pushed the efficiency and function of EMS around the country to the limit. Surges in EMS demand have caused ambulance delays and shortages, the process of taking COVID-related protective measures such as donning personal protective equipment has increased response times, and in Los Angeles County, paramedics were ordered to [delay transporting cardiac arrest patients](https://www.latimes.com/california/story/2020-04-04/l-a-county-911-patients-hospital-coronavirus) to the hospital until 5 minutes after they are revived in order to optimize use of limited ambulance and emergency room capacity.
+# Introduction      
 
-In this environment, increasing the efficiency of ambulance response is critical to minimize the number of lives lost. To do this, we decided to use EMS call data to create a spatiotemporal predictive model for forecasting future calls. We decided to perform this analysis in Santa Monica, California because it has a wealth of EMS call data that reaches back to 2009 and is updated daily. As it is, Santa Monica dispatches ambulances from its network of fire stations and a private contractor as EMS calls are received. We propose to design an algorithm which forecasts the spatiotemporal patterns of EMS demand so that paramedics can arrive at predicted hotspots before emergencies occur. As Santa Monica's COVID cases climb, nearly filling its intensive care units and infecting ambulance and hospital staff, we believe that a more data-driven approach to ambulance dispatch can help reduce strain on the medical system. To watch our pitch deck video for Siren, the app we made with this algorithm, please click [here](youtube.com)
+
+In the field of Emergency Medical Services (EMS), response time is everything. When responding to EMS calls for conditions such as cardiac arrest or stroke, minutes can be the difference between life and death. Over the past year, the COVID-19 pandemic has pushed the efficiency and function of EMS around the country to the limit. Surges in EMS demand have caused ambulance delays and shortages, the process of taking COVID-related protective measures such as donning personal protective equipment has increased response times, and in Los Angeles County, paramedics were ordered to [delay transporting cardiac arrest patients](https://www.latimes.com/california/story/2020-04-04/l-a-county-911-patients-hospital-coronavirus) to the hospital until 5 minutes after they are revived in order to optimize use of limited ambulance and emergency room capacity.  
+
+
+In this environment, increasing the efficiency of ambulance response is critical to minimize the number of lives lost. To do this, we decided to use EMS call data to create a spatiotemporal predictive model for forecasting future calls. We decided to perform this analysis in Santa Monica, California because it has a wealth of EMS call data that reaches back to 2009 and is updated daily. As it is, Santa Monica dispatches ambulances from its network of fire stations and a private contractor as EMS calls are received. We propose to design an algorithm which forecasts the spatiotemporal patterns of EMS demand so that paramedics can arrive at predicted hotspots before emergencies occur. As Santa Monica's COVID cases climb, nearly filling its intensive care units and infecting ambulance and hospital staff, we believe that a more data-driven approach to ambulance dispatch can help reduce strain on the medical system. To watch our pitch deck video for Siren, the app we made with this algorithm, please click [here](youtube.com)  
+
 
 ```{r setup, message=FALSE, warning=FALSE, include=TRUE, results='hide'}
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
@@ -126,10 +130,13 @@ nn_function <- function(measureFrom,measureTo,k) {
 ```
 
 
-# Data and Methods
-In our model, we primarily use data from Santa Monica's Fire Calls for Service dataset, filtered for EMS calls. We additionally use tract-level demographic data from the American Community Survey (ACS),  environmental and city services data from Santa Monica's [Open Data Portal](https://data.smgov.net/), and tract-level health outcome data from the Center for Disease Control (CDC). For the temporal aspect of the model, we use weather data from the [Iowa Environment Mesonet](https://mesonet.agron.iastate.edu/) and city-wide [COVID-19 case counts](https://github.com/datadesk/california-coronavirus-data) compiled by the L.A. Times. 
+# Data and Methods  
 
-Our intention is that the data from the ACS, CDC, and Santa Monica will inform the spatial element of our prediction, as health, socioeconomic conditions, employment, and the physical environment are [correlated](https://bmcpublichealth.biomedcentral.com/articles/10.1186/s12889-019-6964-1) to EMS calls and medical emergencies. Our use of EMS call, weather, and COVID-19 data contribute to the temporal part of this model, as they offer past experience about when EMS calls occur.
+
+In our model, we primarily use data from Santa Monica's Fire Calls for Service dataset, filtered for EMS calls. We additionally use tract-level demographic data from the American Community Survey (ACS),  environmental and city services data from Santa Monica's [Open Data Portal](https://data.smgov.net/), and tract-level health outcome data from the Center for Disease Control (CDC). For the temporal aspect of the model, we use weather data from the [Iowa Environment Mesonet](https://mesonet.agron.iastate.edu/) and city-wide [COVID-19 case counts](https://github.com/datadesk/california-coronavirus-data) compiled by the L.A. Times.  
+
+Our intention is that the data from the ACS, CDC, and Santa Monica will inform the spatial element of our prediction, as health, socioeconomic conditions, employment, and the physical environment are [correlated](https://bmcpublichealth.biomedcentral.com/articles/10.1186/s12889-019-6964-1) to EMS calls and medical emergencies. Our use of EMS call, weather, and COVID-19 data contribute to the temporal part of this model, as they offer past experience about when EMS calls occur.  
+
 
 ```{r wrangle data, cache=TRUE, message=FALSE, warning=FALSE, include=TRUE, results='hide'}
 
@@ -738,6 +745,7 @@ ggplot() +
 
 ```
 
+
 ## Do EMS response times vary?  
 
 
@@ -777,6 +785,7 @@ p3 <- grid.arrange(arrangeGrob(ggplot() +
                    mylegend, nrow=2,heights=c(40, 40), top = "Observed EMS Response Times, 2010-2020")
 ``` 
  
+ 
 ## What spatial features correlate with EMS calls?  
 
 
@@ -789,7 +798,6 @@ To better understand the spatial distribution of EMS calls, we also analyze the 
 
 ```{r risk factor maps, message=FALSE, warning=FALSE, results='hide', fig.height=6, fig.width=4}
 #select features
-#.long - for mapping
 vars_net.long <-
    gather(vars_net_tractData %>%
   dplyr::select(-uniqueID, -tract, -harmfullanduse, -markings, -streetlights, -arthritis, -highBloodPressure, -bloodPressureMeds, -doctorCheckups, -cholesterolScreen, -colonScreen65, -clinicalServicesMen65, -dentalVisits, -highCholesterol, -kidneyDisease, -noPhysicalActivity, -mammograms50, -papTest, -poorPhysicalHealth, -sleepDeprived, -noTeeth, -row, -medianage_male, -medianage_female, -population, -pctWhite, -pctRenterOcc, -pctNoHS, -youthUnemploy, -pctMaleYouth, -streetlightissue.nn, -signandmarking.nn, -harmfullu.nn, -sport.nn, -pulmonaryDisease, -violentCrime.nn, -socialservice.nn, -intersection.nn, -diabetes, -trash.nn, -ZIPCODE), Variable, value, -geometry)
@@ -816,10 +824,10 @@ To verify their correlation with EMS incidents, we plot EMS calls as a function 
 
 
 ```{r risk factor scatterplots, fig.height=6, fig.width=5, message=FALSE, warning=FALSE, results='hide'}
-################Risk Factor Scatterplots########################
+
 correlation.long <-
   st_drop_geometry(final_net) %>%
-    dplyr::select(-uniqueID, -ZIPCODE, -tract, -harmfullanduse, -markings, -streetlights, -arthritis, -highBloodPressure, -bloodPressureMeds, -doctorCheckups, -cholesterolScreen, -colonScreen65, -clinicalServicesMen65, -dentalVisits, -highCholesterol, -kidneyDisease, -noPhysicalActivity, -mammograms50, -papTest, -poorPhysicalHealth, -sleepDeprived, -noTeeth, -row, -medianage_male, -medianage_female, -population, -pctWhite, -pctRenterOcc, -pctNoHS, -youthUnemploy, -pctMaleYouth, -streetlightissue.nn, -signandmarking.nn, -harmfullu.nn, -sport.nn, -pulmonaryDisease, -violentCrime.nn, -socialservice.nn, -intersection.nn, -diabetes, -trash.nn) %>%
+    dplyr::select(-uniqueID, -ZIPCODE, -tract, -harmfullanduse, -markings, -streetlights, -arthritis, -highBloodPressure, -bloodPressureMeds, -doctorCheckups, -cholesterolScreen, -colonScreen65, -clinicalServicesMen65, -dentalVisits, -highCholesterol, -kidneyDisease, -noPhysicalActivity, -mammograms50, -papTest, -poorPhysicalHealth, -sleepDeprived, -noTeeth, -row, -medianage_male, -medianage_female, -population, -pctWhite, -pctRenterOcc, -pctNoHS, -youthUnemploy, -pctMaleYouth, -streetlightissue.nn, -signandmarking.nn, -harmfullu.nn, -sport.nn, -pulmonaryDisease, -violentCrime.nn, -socialservice.nn, -intersection.nn, -diabetes, -trash.nn, -clinicalServicesWomen65, -cvID, -responseTime) %>%
     gather(Variable, Value, -countEMS) %>%
   mutate(Value = as.numeric(Value))
 
@@ -931,25 +939,32 @@ dat_net <- st_join(EMS_2020.sf,
   as.data.frame() 
 
 
-#origin map      #AD: why is this map rotated 90 degrees? + proportions are off..
+#origin map      
+map_net <- dat_net %>%
+  ungroup() %>%
+  st_as_sf(coords = c("latitude","longitude"), crs = "EPSG:2225") %>% 
+  st_transform(crs=4326) %>%
+    cbind(., st_coordinates(.))  #AD: origin map not wokring - dat_net and ACS have different projections...
+
 ggplot()+
-  geom_sf(data = ACSTracts%>%
+  geom_sf(data = ACS %>%
           st_transform(crs=4326), fill = "white")+
   geom_point(data = dat_net %>% 
+             #  st_as_sf(coords = c("latitude","longitude"), crs = "EPSG:2225") %>% 
+  st_transform( crs=4326) %>% 
+  cbind(., st_coordinates(.)) %>%
             mutate(hour = hour(received),
                 weekend = ifelse(dotw %in% c("Sun", "Sat"), "Weekend", "Weekday"),
                 time_of_day = case_when(hour(interval60) < 7 | hour(interval60) > 18 ~ "Overnight",
                                  hour(interval60) >= 7 & hour(interval60) < 10 ~ "AM Rush",
                                  hour(interval60) >= 10 & hour(interval60) < 15 ~ "Mid-Day",
                                  hour(interval60) >= 15 & hour(interval60) <= 18 ~ "PM Rush"))%>%
-              group_by(reporting_district, latitude, longitude, weekend, time_of_day) %>%
+              group_by(reporting_district, X, Y, weekend, time_of_day) %>%
               tally(),
-            aes(x=longitude, y = latitude, color = n), 
+            aes(x= X, y = Y, color = n), 
             fill = "transparent", alpha = 0.4, size = 1)+
   scale_colour_viridis(direction = -1,
   discrete = FALSE, option = "D")+
-  ylim(min(dat_net$latitude), max(dat_net$latitude))+
-  xlim(min(dat_net$longitude), max(dat_net$longitude))+
   facet_grid(weekend ~ time_of_day)+
   labs(title="EMS calls per hr by reporting district. Santa Monica, 2020")+
   mapTheme()
@@ -1061,7 +1076,7 @@ study.panel.rd <-
 ```
 
 
-## Additional Trends: Holidays and Weather
+## Additional Trends: Holidays and Weather  
 
 This new panel allows us to look more closely at some of the temporal patterns around EMS calls. First, we visualize the effect of holidays on EMS calls. We expect that on major holidays such as Christmas Eve and Saint Patrick's day, there is a higher density of people outdoors celebrating and likely more injuries as well. We identify a few of the most festive (and [boozy](https://www.washingtonpost.com/news/wonk/wp/2014/12/20/the-days-of-the-year-when-americans-are-most-drunk-visualized/)) American holidays and plot them against EMS calls. It appears that there are indeed more calls on New Year's, Mardi Gras, Saint Patrick's Day, and Thanksgiving Eve.  
 
@@ -1099,7 +1114,10 @@ holidayPlot %>%
         plotTheme() + theme(panel.grid.major = element_blank())
 ```
 
-We also look more closely at temperature. Figure XX suggests that on warmer days, there tend to be slightly fewer EMS calls. 
+
+We also look more closely at temperature. Figure XX suggests that on warmer days, there tend to be slightly fewer EMS calls.  
+
+
 ```{r plot: weather vs trips, message=FALSE, warning=FALSE, results='hide'}
 study.panel %>%
   filter(week < 10) %>%
@@ -1115,13 +1133,15 @@ study.panel %>%
     plotTheme() 
 ```
 
+
 # Feature Engineering  
 
 
 ## Time Lags  
 
 
-As seen in Figure XX, EMS call volume varies in consistent patterns throughout the day, indicating temporal clustering. We will therefore make lag features to help us predict EMS demand at a given hour.
+As seen in Figure XX, EMS call volume varies in consistent patterns throughout the day, indicating temporal clustering. We will therefore make lag features to help us predict EMS demand at a given hour.  
+
 
 ```{r feature eng - make lags, message=FALSE, warning=FALSE, include=TRUE, results='hide'}
 study.panel <- 
@@ -1152,9 +1172,6 @@ In Figure XX, we see that 1 hour lag appears to correlate with EMS count.
 
 
 ```{r Time lag plot, message=FALSE, warning=FALSE, results='hide'}
-
-#AD: I'm not so clear on this part, particularly the meaning of the tables. Could you leave me some notes/explanation?
-
 #lagHour / EMS Count plot
 cor_lag <- na.omit(study.panel.rd[, c("interval60","reporting_district","EMS_Count", "lagHour")])
 #plot(cor_lag$EMS_Count, cor_lag$lagHour)
@@ -1196,65 +1213,6 @@ rbind(
              subtitle="Santa Monica, CA", 
              x="Day", y="EMS Count") +
         plotTheme() + theme(panel.grid.major = element_blank())    
-
-#study.panel.15 <- 
-#  study.panel.15 %>% 
-#  arrange(reporting_district, interval15) %>% 
-#  mutate(lag15 = dplyr::lag(EMS_Count,1),
-#         lag30 = dplyr::lag(EMS_Count,2),
-#         lag45 = dplyr::lag(EMS_Count,3),
-#         lag60 = dplyr::lag(EMS_Count,4),
-#         lag90 = dplyr::lag(EMS_Count,6),
-#         lag120 = dplyr::lag(EMS_Count,8)) %>% 
-#   mutate(day = yday(interval15))
-
-#cor_lag.15 <- na.omit(study.panel.15[, c("interval15","reporting_district","EMS_Count", "lag15")])
-#plot(cor_lag.15$EMS_Count, cor_lag$lag15)
-#cor.test(cor_lag.15$EMS_Count, cor_lag.15$lag15, method = c("pearson", "kendall", "spearman"))
-#0.008458162 
-#table(cor_lag.15$EMS_Count, cor_lag.15$lag15)
-#       1    2    3
-#  1 7544  170    5
-#  2  170    6    0
-#  3    5    0    0
-#corlag.emsct.15 <- na.omit(study.panel.15[c("interval15","EMS_Count")])%>%
-#  mutate(ems_Count=EMS_Count)%>%
-#  dplyr::select(-EMS_Count)%>%
-#  subset(.,
-#     interval15 >= as.POSIXct('2020-10-20 01:00:00 UTC') &
-#     interval15 <= as.POSIXct('2020-12-01 01:00:00 UTC')
-#     )
-#  
-#corlag.lag1ct.15 <- na.omit(study.panel.15[, c("interval15","lag15")])%>%
-#  mutate(ems_Count=lag15)%>%
-#  dplyr::select(-lag15)%>%
-#  subset(.,
-#     interval15 >= as.POSIXct('2020-10-20 01:00:00 UTC') &
-#     interval15 <= as.POSIXct('2020-12-01 01:00:00 UTC')
-#     ) 
-
-
-#mondays.15 <- 
-#  mutate(study.panel.15,
-#         monday = ifelse(dotw == "Mon" & hour(interval15) == 1,
-#                         interval15, 0)) %>%
-#  filter(monday != 0) 
-#
-#rbind(
-#  mutate(corlag.emsct.15, Legend = "EMS count"), 
-#  mutate(corlag.lag1ct.15, Legend = "EMS 15 min lag count")) %>%
-#    group_by(Legend, interval15) %>% 
-#      summarize(ems_Count = sum(ems_Count)) %>%
-#      ungroup() %>% 
-#      ggplot(aes(interval15, ems_Count, colour = Legend)) + geom_line() +
-#        scale_colour_manual(values = palette2) +
-#        geom_vline(xintercept = thanksgivingEve, linetype = "dotted") +
-#        geom_vline(data = mondays.15, aes(xintercept = monday)) +
-#        labs(title="EMS trips by week",
-#             subtitle="Santa Monica,CA", 
-#             x="Day", y="EMS Count") +
-#        plotTheme() + theme(panel.grid.major = element_blank())   
-
 ``` 
  
  
@@ -1296,7 +1254,9 @@ study.panel <-
 ```
 
 
-## EMS Hotspots 
+## EMS Hotspots  
+
+
 
 Lastly, recall the spatial pattern of EMS calls that we saw in exploratory analysis. It is likely that EMS calls experience spatial as well temporal clustering, and we will make features to account for this. We use a Local Moran's I statistic to check if, and where, the clustering of EMS calls is greater than it would be if they were randomly distributed. In Figure XX, we see that of the fishnet grids with high rates of EMS calls, only some of them have high clustering (Moran's I). Next, we use the p-value of the Moran's I value to identify areas with high clustering that also have a high confidence level in their Moran's I. This leaves us with two distinct hot spots in Santa Monica: one in the downtown area, and one in Midtown.These hotspots make sense: the downtown area has a beach, the Santa Monica pier, and Muscle Beach, three locations with high daytime occupancy and high risk for accidents. Using this data, we make two new features: whether a grid cell is in a hotspot, and a grid cell's distance to the nearest hotspot.
 
@@ -1466,7 +1426,9 @@ summary(reg4_lag)
 # Evaluating our model  
 
 
-We evaluate the usefulness of these models using accuracy and generalizability as metrics. We test accuracy by calculating the Mean Absolute Error (MAE) in our predictions for each fishnet cell/hour pair. The lower the error, the more accurate our model. For generalizability, we check if our model predicts equally well across different spatial, temporal, and social contexts. For an outcome as consequential as EMS calls, it is critical that our model predicts with equal accuracy across social contexts such as race, income, and health levels.  
+We evaluate the usefulness of these models using accuracy and generalizability as metrics. We test accuracy by calculating the Mean Absolute Error (MAE) in our predictions for each fishnet cell/hour pair. The lower the error, the more accurate our model. For generalizability, we check if our model predicts equally well across different spatial, temporal, and social contexts. For an outcome as consequential as EMS calls, it is critical that our model predicts with equal accuracy across social contexts such as race, income, and health levels.    
+
+
 ```{r predict on test data, message=FALSE, warning=FALSE, include=TRUE}
 ##nesting
 EMS.Test.weekNest <- 
@@ -1490,6 +1452,7 @@ week_predictions <-
            sd_AE = map_dbl(Absolute_Error, sd, na.rm = TRUE),
            )
 ```
+
 
 ## Accuracy  
 
@@ -1532,7 +1495,7 @@ week_predictions %>%
 
 While our model has limited ability to pick up the highest demand peaks, generalizability is in some ways more important for this use case. When dispatching ambulances, it does not matter so much whether our model projects the full extent of each demand peak. Rather, it must alert EMTs to relative peaks in demand, as this is what determines dispatch. Therefore, it is more important that our model predicts with comparable accuracy across different times and spaces. Further, it is critical that our model performs equally across different social contexts. 
 
-Figure 1 shows that our model has similar MAE across different hours of the day and week. Figure 2, however, shows that while the average MAE of our model is around 0.015, a select few fishnet grids have error of up to 4x this amount. Figure 3 confirms this. This is concerning, and it requires that we look more closely at where these large errors are occuring, and to whom.  
+Figure XX shows that our model has similar MAE across different hours of the day and week. Figure XX, however, shows that while the average MAE of our model is around 0.015, a select few fishnet grids have error of up to 4x this amount. Figure XX confirms this. This is concerning, and it requires that we look more closely at where these large errors are occuring, and to whom.  
 
 
 ```{r generalizability across space and time, message=FALSE, warning=FALSE, results='hide'}
@@ -1640,11 +1603,11 @@ ggplot(MAE_plot_map)+
   mapTheme()
 ```
 
-Almost no difference in error across income, age, race, and health groups.
+Figure XX plots MAE as a function of income, age, race, and poor physical health. We see that areas with higher median income and share of White residents have lower error. While the correlation between these factors and error is relatively weak, this is concerning because it means that our model has the potential to reinforce existing [inequities](https://journals.lww.com/em-news/fulltext/2020/03000/news__racial_disparity_at_play_even_in_ems.5.aspx) in the way that EMS serves communities. On the other hand, there is a weak negative correlation between median age and MAE. This may be a good sign, as older adults tend to require more medical care due to increased prevalence of [chronic disease](https://www.ncoa.org/news/resources-for-reporters/get-the-facts/healthy-aging-facts/#:~:text=Approximately%2080%25%20of%20older%20adults,of%20all%20deaths%20each%20year.). Finally, there is no significant correlation between EMS and percentage of residents who self report poor physical health. This is a very good sign. While income, age, and race can be proxies of health care needs and access, this outcome tells us that our model will not result in unequal EMS service to those who may need it most. 
 ```{r generalizability across social groups, message=FALSE, warning=FALSE, results='hide'}
 #pctWhite, medHHInc, median_age, poorPhysicalHealth
 
-week_predictions %>% 
+genByGroup <- week_predictions %>% 
   mutate(interval60 = map(data, pull, interval60),
          uniqueID = map(data, pull, uniqueID), 
          latitude = map(data, pull, latitude), 
@@ -1669,14 +1632,26 @@ week_predictions %>%
   group_by(uniqueID, pctWhite, medHHInc, median_age, poorPhysicalHealth) %>%
   summarize(MAE = mean(abs(Observed-Prediction), na.rm = TRUE))%>%
   gather(-uniqueID, -MAE, key = "variable", value = "value")%>%
-  ggplot(.)+
-  #geom_sf(data = sfCensus, color = "grey", fill = "transparent")+
+  filter(MAE < 0.1)
+
+
+
+genByGroup.cor <-
+  genByGroup %>%
+    group_by(variable) %>%
+    summarize(correlation = cor(value, MAE, use = "complete.obs"))
+    
+
+  ggplot(genByGroup)+
   geom_point(aes(x = value, y = MAE), alpha = 0.4)+
+    geom_text(data = genByGroup.cor, aes(label = paste("r = ", round(correlation,2))),
+              x=-Inf, y=Inf, vjust = 1.5, hjust = -.1) +
   geom_smooth(aes(x = value, y = MAE), method = "lm", se= FALSE)+
   facet_wrap(~variable, scales = "free")+
-  labs(title="Errors as a function of socio-economic variables",
-       y="Mean Absolute Error (Trips)")+
+  labs(title="Error as a Function of Socio-economic Variables",
+       y="Mean Absolute Error (EMS Calls)")+
   plotTheme()
+
 ```
 
 
@@ -1919,90 +1894,5 @@ reg.ss.cv %>%
   labs(title = "Figure 6.6: Actual EMS calls in 2020")
 
 ```
-
-
-
-
-```{r more spatial validation}
-# week_predictions.rd <- week_predictions %>%
-#   mutate(interval60 = map(data, pull, interval60),
-#          latitude = map(data, pull, latitude),
-#          longitude = map(data, pull, longitude)) %>%
-#   dplyr::select(latitude, longitude, interval60, Observed, Prediction, Regression, Absolute_Error, sd_AE, MAE) %>%
-#   unnest() %>%
-#  left_join(., EMS_18_20, by= c("interval60" = "interval60"))
-# 
-# 
-# 
-# week_predictions.twocol <- week_predictions.rd %>%
-#   left_join(., EMS_18_20 %>% dplyr::select(reporting_district, latitude, longitude, station, incident_date) %>% unique()) %>%
-#   filter(Regression == "Time_Space_FE_timeLags") %>%
-#   group_by(reporting_district) %>%
-#   summarize(MAE = mean(abs(Observed-Prediction), na.rm = TRUE))
-# 
-# #Michael: select uniqueID, join by incident, not reporting district
-# week_predictions.rd <- left_join(week_predictions.rd, week_predictions.twocol, by="reporting_district")
-# 
-# #week_predictions.latlon <- left_join(week_predictions.rd, EMS_2020[,c("reporting_district", "latitude", #"longitude", "dotw", "week", "interval60")],by = "reporting_district")
-# 
-# 
-# 
-# 
-# week_predictions.latlon %>% 
-#   mutate(weekend = ifelse(dotw %in% c("Sun", "Sat"), "Weekend", "Weekday"),
-#          time_of_day = case_when(hour(interval60.x) < 7 | hour(interval60.x) > 18 ~ "Overnight",
-#                                  hour(interval60.x) >= 7 & hour(interval60.x) < 10 ~ "AM Rush",
-#                                  hour(interval60.x) >= 10 & hour(interval60.x) < 15 ~ "Mid-Day",
-#                                  hour(interval60.x) >= 15 & hour(interval60.x) <= 18 ~ "PM Rush"))%>%
-#   ggplot()+
-#   geom_point(aes(x= Observed, y = Prediction))+
-#     geom_smooth(aes(x= Observed, y= Prediction), method = "lm", se = FALSE, color = "red")+
-#     geom_abline(slope = 1, intercept = 0)+
-#   facet_grid(time_of_day~weekend)+
-#   labs(title="Figure 5.4: Observed vs Predicted",
-#        x="Observed trips", 
-#        y="Predicted trips")+
-#   plotTheme()
-#   
-# 
-# ggplot()+
-#   geom_sf(data = SM_Base, color = "grey", fill = "transparent") +
-#   geom_point(data = week_predictions.rd %>% sample_n(., 10000), aes(x = longitude.x, y = latitude.y, color = MAE), 
-#              fill = "transparent", alpha = 0.4)+
-#   scale_colour_viridis(direction = -1,
-#   discrete = FALSE, option = "D")+
-#   ylim(min(final_net$latitude), max(final_net$latitude))+
-#   xlim(min(final_net$longitude), max(final_net$longitude))+
-#   labs(title="Figure 5.3: Mean Abs Error, Test Set, Model 4")+
-#   mapTheme()
-# 
-# 
-# 
-# week_predictions.rd %>% 
-#  # mutate(interval60 = map(data, pull, interval60),
-#    #      uniqueID = map(data, pull, uniqueID), 
-#   #       latitude = map(data, pull, latitude.x), 
-#     #     latitude = map(data, pull, longitude.x)) %>%
-#   dplyr::select(interval60, uniqueID, longitude.x, latitude.x, Observed, Prediction, Regression) %>%
-#   unnest() %>%
-#     sample_n(10000) %>%
-#   filter(Regression == "DTime_Space_FE_timeLags") %>%
-#   group_by(uniqueID, longitude, latitude) %>%
-#   summarize(MAE = mean(abs(Observed-Prediction), na.rm = TRUE))%>%
-#   ggplot(.)+
-#   geom_sf(data = ACS %>%
-#             st_transform(crs=4326), colour = '#efefef')+
-#   geom_point(aes(x = longitude, y = latitude, color = MAE), 
-#              fill = "transparent", alpha = 0.4)+
-#   scale_colour_viridis(direction = -1,
-#                        discrete = FALSE, option = "D")+
-#   ylim(min(EMS_2020.sf$latitude), max(EMS_2020.sf$latitude))+
-#   xlim(min(EMS_2020.sf$longitude), max(EMS_2020.sf$longitude))+
-#   labs(title="Mean Abs Error, Test Set, Model 4")+
-#   mapTheme()
-
-
-```
-
 
 
