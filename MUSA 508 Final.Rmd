@@ -674,7 +674,7 @@ EMS_18_20.sf <- EMS_18_20.sf %>%
 ```
  
  
-### Where do EMS calls occur?   
+## Where do EMS calls occur?   
 
 
 In Figure 1, we see that Santa Monica's EMS calls come primarily from the downtown and midtown regions, where most tourist attractions are located. This is expected, as studies have found that emergencies are most likely to occur in places with [high daytime populations](https://core.ac.uk/download/pdf/211327292.pdf). With greater distance from downtown, EMS incidents become less frequent. Out of curiosity, we checked if these patterns have been consistent in recent years, and found that the hot-spots have remained the same since 2010.
@@ -711,7 +711,7 @@ ggplot() +
 ```
 
 
-### Do EMS response times vary?  
+## Do EMS response times vary?  
 
 
 We would expect that response times in the past year have been slower due to increased demand related to the pandemic. However, average response times in 2020 were actually lower than the average response time over the past 10 years (Figure 2). This may indicate higher efficiency, however it's also been documented that  fear of COVID-19 infection is [deterring people](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7318958/) from calling ambulances for non-COVID emergencies such as heart attacks. That is not good. Additionally, while response times have decreased, they are still relatively high: in 2020, the mean response time was 29 minutes, more than 6x the length of the [standard](https://www.lexipol.com/resources/blog/understanding-and-measuring-fire-department-response-times/#:~:text=Turnout%20Time%3A%2060%20seconds%20for,minimum%20staffing%20of%204%20personnel) set by the National Fire Protection Association.  
@@ -751,7 +751,7 @@ p3 <- grid.arrange(arrangeGrob(ggplot() +
 ``` 
  
  
-### What spatial features correlate with EMS calls?  
+## What spatial features correlate with EMS calls?  
 
 
 To better understand the spatial distribution of EMS calls, we map the spatial distribution of some of its [risk factors](https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2716993). We use health factors related to health emergencies such as past incidence of stroke, heart disease, and high blood pressure. We also use demographic features related to groups at high risk of relying on emergency medical services as their primary health care including poverty rate, unemployment, and percent White. In addition, we use environmental features related to poor community health including harmful land use, street light issues, and municipal service requests. Finally, we map violent crime incidents, perhaps the most direct proxy for EMS demand. We find three main patterns:
@@ -812,6 +812,7 @@ ggplot(correlation.long, aes(Value, countEMS)) +
   labs(title = "Figure 4: Observed EMS Calls as a Function of Risk Factors", subtitle = "Santa Monica, CA") +
   plotTheme()
 ```
+
 
 ## What temporal factors correlate with EMS calls?  
 
@@ -945,7 +946,6 @@ ggplot(., aes(date,two_week_lag)) +
 So far, we have found that Santa Monica has relatively high average income and good health, and that its EMS cases may have less to do with crime, poverty, and poor health than in other cities. This prompts us to consider another source of medical emergencies: motor accidents. One of the key temporal predictors of these accidents is weather, therefore we visualize weather conditions in Figure 10. Overall, Santa Monica has pleasant weather year round, although its precipitation and wind gust are highest during the earlier parts of the year when EMS calls also peaked. We examine this further in a later section.
 
 
-
 ```{r Figure 10: weather conditions/time plot, fig.height=9, fig.width=8, message=FALSE, warning=FALSE, results='hide'}
 library(ggplot2)
 library(gridExtra)
@@ -1019,7 +1019,7 @@ study.panel.rd <-
 ```
 
 
-### Additional Trends: Holidays and Weather   
+## Additional Trends: Holidays and Weather   
 
 This new panel allows us to look more closely at some of the temporal patterns around EMS calls. First, we visualize the effect of holidays on EMS calls. We expect that on major holidays such as Christmas Eve and Saint Patrick's day, there is a higher density of people outdoors celebrating and likely more injuries as well. We identify a few of the most festive (and [boozy](https://www.washingtonpost.com/news/wonk/wp/2014/12/20/the-days-of-the-year-when-americans-are-most-drunk-visualized/)) American holidays and plot them against EMS calls. It appears that there are indeed more calls on New Year's, Mardi Gras, Saint Patrick's Day, and Thanksgiving Eve.  
 
@@ -1080,7 +1080,7 @@ study.panel %>%
 # Feature Engineering  
 
 
-### Time Lags   
+## Time Lags   
 
 
 As seen in Figure 6, EMS call volume varies in consistent patterns throughout the day, indicating temporal clustering. We therefore make lag features to help us predict EMS demand at a given hour.  
@@ -1109,7 +1109,8 @@ study.panel.rd <-
    mutate(day = yday(interval60))
 ```
 
-In Figure 13, we see that 1 hour lag appears to correlate with EMS count.    
+
+In Figure 13, we see that 1 hour lag appears to correlate with EMS count.      
 
 ```{r Figure 13: Time lag plot, message=FALSE, warning=FALSE, results='hide'}
 #lagHour / EMS Count plot
@@ -1166,7 +1167,7 @@ as.data.frame(study.panel) %>%
 ```
 
 
-### Additional Temporal Features  
+## Additional Temporal Features  
 
 
 We also engineer features specific to the temporal trends we found in our exploratory analysis. These are isHoliday, isWeekend, and isPeakHour.
@@ -1185,7 +1186,7 @@ study.panel <-
 ```
 
 
-### EMS Hotspots  
+## EMS Hotspots  
 
 
 Lastly, recall the spatial pattern of EMS calls that we saw in exploratory analysis. It is likely that EMS calls experience spatial as well temporal clustering, and we make features to account for this. We use a Local Moran's I statistic to check if, and where, the clustering of EMS calls is greater than it would be if they were randomly distributed. In Figure 14, we see that of the fishnet grids with many EMS calls, only some of them have high clustering (Moran's I). Next, we use the p-value of the Moran's I value to identify areas with clustering that also have a high confidence level. This leaves us with two distinct hot spots in Santa Monica: one in the downtown area, and one in Midtown. These hotspots make sense: the downtown area has a beach, the Santa Monica pier, and Muscle Beach, three locations with high daytime occupancy and risk for accidents. Using this information, we make two new features which tell us whether a grid cell is in a hotspot, and a grid cell's distance to the nearest hotspot.
@@ -1564,7 +1565,7 @@ genByGroup.cor <-
 ```
 
 
-## Cross Validation
+# Cross Validation
 
 In this section, goodness of fit metrics are generated for eight regressions - four including all Risk Factors (reg.vars), and two (reg.ss.vars) to include spatial risk factors plus the Local Moran's I Spatial Process, and the last two (reg.tt.vars) to include temporal risk factors.  
 
