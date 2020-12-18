@@ -10,7 +10,7 @@ output:
     code_folding: hide
     number_sections: TRUE
 ---
-## Introduction      
+# Introduction      
 
 
 In the field of Emergency Medical Services (EMS), response time is everything. When responding to EMS calls for conditions such as cardiac arrest or stroke, minutes can be the difference between life and death. Over the past year, the COVID-19 pandemic has pushed the efficiency and function of EMS around the country to the limit. Surges in EMS demand have caused ambulance delays and [shortages](https://www.startribune.com/fema-ambulances-deployed-to-help-transfer-minn-patients/573127151/) and the process of taking COVID-related protective measures such as donning personal protective equipment has increased response times. In Los Angeles County, paramedics were ordered to [delay transporting cardiac arrest patients](https://www.latimes.com/california/story/2020-04-04/l-a-county-911-patients-hospital-coronavirus) to the hospital until 5 minutes after they are revived in order to optimize use of limited ambulance and emergency room capacity.  
@@ -139,7 +139,7 @@ nn_function <- function(measureFrom,measureTo,k) {
 ```
 
 
-## Data and Methods  
+# Data and Methods  
 
 
 In our model, we primarily use data from Santa Monica's Fire Calls for Service dataset, filtered for EMS calls. We additionally use tract-level demographic data from the American Community Survey (ACS),  environmental and city services data from Santa Monica's [Open Data Portal](https://data.smgov.net/), and tract-level health outcome data from the Center for Disease Control (CDC). For the temporal aspect of the model, we use weather data from the [Iowa Environment Mesonet](https://mesonet.agron.iastate.edu/) and city-wide [COVID-19 case counts](https://github.com/datadesk/california-coronavirus-data) compiled by the L.A. Times.  
@@ -509,7 +509,7 @@ rm(bars, call311, downtown, CDC, intersections, lu, parcel, signandmarking, soci
 ```
 
 
-## Data Exploration  
+# Data Exploration  
 
 
 To begin our analysis, we wrangle EMS call data to understand the spatial trends in EMS calls and response times. 
@@ -962,7 +962,7 @@ grid.arrange(
 ```
 
 
-## Make Study Panels  
+# Make Study Panels  
 
 
 To model the relationship between our spatial and temporal features and EMS calls, we now create the final dataset for our analysis: a 'panel'. This panel summarizes our features for each unique space/time unit pair in our analysis (each 1 hour period from Jan/1/2020 to Dec/17/2020 x 234 fishnet grid cells).  
@@ -1073,7 +1073,7 @@ study.panel %>%
 ```
 
 
-## Feature Engineering  
+# Feature Engineering  
 
 
 ### Time Lags   
@@ -1233,7 +1233,7 @@ final_net <-
 ```
 
 
-## Linear Regression Models
+# Linear Regression Models
 
 
 We now begin to build a series of linear regression models. First, we visualize the correlations between all of our final features. Figure 15 shows us that poverty rate and median income correlate strongly, therefore they may be co-linear and should not be included in a model together. The same goes for downtown distance and distance to nearest hotspot; percent white and median income; and day and week.
@@ -1302,7 +1302,7 @@ reg4_lag <-   lm(EMS_Count ~ h_interval60 + dotw + Temperature + Precipitation +
 ```
 
 
-## Model Performance  
+# Model Performance  
 
 
 We evaluate the usefulness of these models using accuracy and generalizability as metrics. We test accuracy by calculating the Mean Absolute Error (MAE) in our predictions for each fishnet cell/hour pair. The lower the error, the more accurate our model. For generalizability, we check if our model predicts equally well across different spatial, temporal, and social contexts. For a use case that concerns saving lives and responding to time-sensitive emergencies, it is critical that our model predicts with equal accuracy across social contexts such as race, income, and health levels.    
@@ -1556,13 +1556,12 @@ genByGroup.cor <-
 ```
 
 
-## Cross Validation  
+## Cross Validation
+
+In this section, goodness of fit metrics are generated for eight regressions - four including all Risk Factors (reg.vars), and two (reg.ss.vars) to include spatial risk factors plus the Local Moran's I Spatial Process, and the last two (reg.tt.vars) to include temporal risk factors.  
 
 
-In this section, goodness of fit metrics are generated for eight regressions - four including all Risk Factors (reg.vars), and two (reg.ss.vars) to include spatial risk factors plus the Local Moran's I Spatial Process, and the last two (reg.tt.vars) to include temporal risk factors.   
-
-
-```{r cross validation, message=FALSE, warning=FALSE}
+```{r cross validation, message=FALSE, warning=FALSE, results='hide'}
 reg.vars <- c("h_interval60", "month", "dotw", "Temperature", "Precipitation", "wind_gust", "Wind_Speed", "isWeekend", "isHoliday", "isPeakHour", "uniqueID", "Violent_Crime", "bar.nn", "downtown.nn", "lagHour", "lag2Hours", "lag4Hours", "lag12Hours", "lag1day")
 
 reg.ss.vars <- c("bar.nn", "downtown.nn", "Violent_Crime", "uniqueID", "EMS.isSig.x", "EMS.isSig.dist.x")
@@ -1602,6 +1601,196 @@ cvID_list <- unique(dataset[[id]])
 
 study.panel.net <- left_join(study.panel.net, final_net[,c("EMS.isSig", "EMS.isSig.dist", "uniqueID")], by="uniqueID") %>%
   mutate(month = month(interval60))
+substudy.panel.net <- study.panel.net[,c("month", "h_interval60", "dotw", "Temperature", "Precipitation", "wind_gust", "Wind_Speed", "isWeekend", "isHoliday", "isPeakHour", "uniqueID", "Violent_Crime", "bar.nn", "downtown.nn", "lagHour", "lag2Hours", "lag4Hours", "lag12Hours", "lag1day", "EMS.isSig", "EMS.isSig.dist.x", "cvID", "EMS_Count", "geometry.x")]
 
-study.panel.net
+sample <- sample_n(substudy.panel.net, 10000)
 ```
+
+```{r cv regressions}
+#Regressions
+reg.cv <- crossValidate(
+  dataset = sample,
+  id = "cvID",
+  dependentVariable = "EMS_Count",
+  indVariables = reg.vars) %>%
+    dplyr::select(cvID = cvID, EMS_Count, Prediction, geometry.x)
+
+reg.ss.cv <- crossValidate(
+  dataset = sample,
+  id = "cvID",
+  dependentVariable = "EMS_Count",
+  indVariables = reg.ss.vars) %>%
+    dplyr::select(cvID = cvID, EMS_Count, Prediction, geometry.x)
+
+reg.temcv <- crossValidate(
+  dataset = sample,
+  id = "cvID",
+  dependentVariable = "EMS_Count",
+  indVariables = reg.vars) %>%
+    dplyr::select(cvID = month, EMS_Count, Prediction, geometry.x)
+
+reg.tt.temcv <- crossValidate(
+  dataset = sample,
+  id = "cvID",
+  dependentVariable = "EMS_Count",
+  indVariables = reg.tt.vars) %>%
+    dplyr::select(cvID = month, EMS_Count, Prediction, geometry.x)
+## unsuccessful below
+
+reg.spatialCV <- crossValidate(
+  dataset = sample,
+  id = "uniqueID",
+  dependentVariable = "EMS_Count",
+  indVariables = reg.vars) %>%
+    dplyr::select(cvID = uniqueID, EMS_Count, Prediction, geometry.x)
+
+reg.ss.spatialCV <- crossValidate(
+  dataset = sample,
+  id = "uniqueID",
+  dependentVariable = "EMS_Count",
+  indVariables = reg.ss.vars) %>%
+    dplyr::select(cvID = uniqueID, EMS_Count, Prediction, geometry.x)
+
+reg.temporalCV <- crossValidate(
+  dataset = sample,
+  id = "uniqueID",
+  dependentVariable = "EMS_Count",
+  indVariables = reg.vars) %>%
+    dplyr::select(cvID = month, EMS_Count, Prediction, geometry.x)
+
+reg.ss.temporalCV <- crossValidate(
+  dataset = sample,
+  id = "uniqueID",
+  dependentVariable = "EMS_Count",
+  indVariables = reg.tt.vars) %>%
+    dplyr::select(cvID = month, EMS_Count, Prediction, geometry.x)
+
+#summary of regression results
+reg.summary <- 
+  rbind(
+    mutate(reg.cv,           Error = Prediction - EMS_Count,
+                             Regression = "Random k-fold CV: Just Risk Factors"),
+                             
+    mutate(reg.ss.cv,        Error = Prediction - EMS_Count,
+                             Regression = "Random k-fold CV: Spatial Process"),
+    
+    mutate(reg.temcv,    Error = Prediction - EMS_Count,
+                             Regression = "Random k-fold CV: Just Risk Factors by Month"),
+                             
+    mutate(reg.tt.temcv, Error = Prediction - EMS_Count,
+                             Regression = "Random k-fold CV: Temporal Process by Month"),
+    mutate(reg.spatialCV,           Error = Prediction - EMS_Count,
+                             Regression = "Spatial LOGO-CV: Just Risk Factors"),
+                             
+    mutate(reg.ss.spatialCV,        Error = Prediction - EMS_Count,
+                             Regression = "Spatial LOGO-CV: Spatial Process"),
+    
+    mutate(reg.temporalCV,    Error = Prediction - EMS_Count,
+                             Regression = "Spatial LOGO-CV: Just Risk Factors by Month"),
+                             
+    mutate(reg.ss.temporalCV, Error = Prediction - EMS_Count,
+                             Regression = "Spatial LOGO-CV: Temporal Process by Month")) %>%
+    st_sf() 
+
+error_by_reg_and_fold <- 
+  reg.summary %>%
+    group_by(Regression, cvID) %>% 
+    summarize(Mean_Error = mean(Prediction - EMS_Count, na.rm = T),
+              MAE = mean(abs(Mean_Error), na.rm = T),
+              SD_MAE = mean(abs(Mean_Error), na.rm = T)) %>%
+  ungroup()
+```
+
+
+```{r CV figures, message=FALSE, warning=FALSE, results='hide'}
+error_by_reg_and_fold %>%
+  ggplot(aes(MAE)) + 
+    geom_histogram(bins = 30, colour="black", fill = "#FDE725FF") +
+    facet_wrap(~Regression) +  
+    geom_vline(xintercept = 0) + scale_x_continuous(breaks = seq(0, 8, by = 1)) + 
+    labs(title="Distribution of MAE", subtitle = "k-fold cross validation vs. LOGO-CV",
+         x="Mean Absolute Error", y="Count") +
+    plotTheme()
+
+error_by_reg_and_fold %>%
+  ggplot(aes(MAE)) + 
+    geom_histogram(bins = 30, colour="black", fill = "#FDE725FF") +
+    facet_wrap(~Regression) +  
+    labs(title="Figure 6.3: Distribution of MAE", subtitle = "k-fold cross validation vs. LOGO-CV",
+         x="Mean Absolute Error", y="Count") 
+
+st_drop_geometry(error_by_reg_and_fold) %>%
+  group_by(Regression) %>% 
+    summarize(Mean_MAE = round(mean(MAE), 4),
+              SD_MAE = round(sd(MAE), 4)) %>%
+  kable() %>%
+    kable_styling("striped", full_width = F) %>%
+    row_spec(2, color = "black", background = "#FDE725FF") %>%
+    row_spec(4, color = "black", background = "#FDE725FF") %>%
+    row_spec(8, color = "black", background = "#FDE725FF") 
+
+error_by_reg_and_fold %>%
+  filter(str_detect(Regression, "LOGO")) %>%
+  ggplot() +
+    geom_sf(aes(fill = MAE)) +
+    facet_wrap(~Regression) +
+    scale_fill_viridis() +
+    labs(title = "EMS calls errors by LOGO-CV Regression") +
+    mapTheme() + theme(legend.position="bottom")
+
+st_drop_geometry(reg.summary) %>%
+  group_by(Regression) %>%
+    mutate(EMS_Decile = ntile(EMS_Count, 10)) %>%
+  group_by(Regression, EMS_Decile) %>%
+    summarize(meanObserved = mean(EMS_Count, na.rm=T),
+              meanPrediction = mean(Prediction, na.rm=T)) %>%
+    gather(Variable, Value, -Regression, -EMS_Decile) %>%          
+    ggplot(aes(EMS_Decile, Value, shape = Variable)) +
+      geom_point(size = 2) + geom_path(aes(group = EMS_Decile), colour = "black") +
+      scale_shape_manual(values = c(2, 17)) +
+      facet_wrap(~Regression) + xlim(0,10) +
+      labs(title = "Predicted and observed EMS calls by observed EMS_Decile")  +
+      plotTheme()
+
+map_of_k_and_validation <-
+  ggplot() +
+  geom_sf(data = error_by_reg_and_fold, aes(fill = MAE, colour = MAE)) +
+        scale_fill_viridis() +
+        facet_wrap(~Regression) + 
+        scale_colour_viridis()+
+        labs(title="Figure 6.4: Distribution of MAE", subtitle = "k-fold cross validation vs. LOGO-CV",
+        x="Mean Absolute Error", y="Count")+
+        mapTheme()
+
+map_of_k_and_validation
+
+
+#predictions
+reg.summary %>%
+  ggplot() +
+  geom_sf(aes(fill = Prediction, colour = Prediction)) +
+  scale_fill_viridis() +
+  scale_colour_viridis() +
+  facet_wrap(~Regression) +  
+  mapTheme ()+
+  theme(strip.text = element_text(size=5))+
+  labs(title = "Figure 6.5: Predictions With Different Methods ")
+
+#actual counts, for comparison
+reg.ss.cv %>%
+  ggplot() +
+  geom_sf(aes(fill = EMS_Count, colour = EMS_Count)) +
+  scale_fill_viridis() +
+  scale_colour_viridis()+
+  mapTheme () +
+  labs(title = "Figure 6.6: Actual EMS calls in 2020")
+
+```
+
+# Conclusion
+We recommend that 
+- accuracy
+- generalizability
+- limitations
+- would be nice to have (additional data) 
+- 
