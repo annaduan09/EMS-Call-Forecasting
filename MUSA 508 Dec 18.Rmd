@@ -22,7 +22,7 @@ In this environment, increasing the efficiency of ambulance response is critical
 As it is, Santa Monica dispatches ambulances from its network of fire stations and a private ambulance company as EMS calls are received. We propose to design an algorithm which forecasts the spatiotemporal patterns of EMS demand so that paramedics can arrive at predicted hotspots before emergencies occur. As Santa Monica's [COVID cases climb](https://www.surfsantamonica.com/ssm_site/the_lookout/news/News-2020/December-2020/12_08_2020_Santa_Monica_Shatters_Weekly_Record_for_COVID_19_Cases_Deaths.html), nearly filling its intensive care units and infecting ambulance and hospital staff, we believe that a more data-driven approach to ambulance dispatch can help reduce strain on the medical system.   
 
 
-To watch our __pitch deck video for Siren__, the app we made with this algorithm, please click [here](youtube.com).
+To watch our __pitch deck video for Siren__, the app we made with this algorithm, please click [here](https://www.youtube.com/watch?v=RZF3mLuHx_w&t=7s).
 
 
 ```{r setup, message=FALSE, warning=FALSE, include=TRUE, results='hide'}
@@ -1580,6 +1580,5 @@ If your agency is interested in adopting our app Siren for your ambulance dispat
 Anna Duan: [email](annaduan@sas.upenn.edu)
 Bingchu Chen: [email](bcchen@design.upenn.edu)
 
-<img src="/Users/annaduan/Documents/GitHub/EMS-Call-Forecasting/SIREN\ LOGO.png" alt="Siren Logo" style="height: 433px; width:225px;"/>
 
 - 
